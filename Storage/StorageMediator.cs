@@ -11,6 +11,11 @@ namespace Fury.Storage
         {
             _controller = controller;
         }
+
+        private void LateUpdate()
+        {
+            _controller?.Keys.LateUpdate();
+        }
     }
 
 }

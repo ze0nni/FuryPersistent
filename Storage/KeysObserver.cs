@@ -67,5 +67,10 @@ namespace Fury.Storage
         {
             
         }
+
+        internal void LateUpdate()
+        {
+
+        }
     }
 }
