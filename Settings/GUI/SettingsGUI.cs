@@ -29,10 +29,9 @@ namespace Fury.Settings.UI
         event Action OnUpdate;
     }
 
-    internal sealed partial class SettingsGUI<TKeysData> : ISettingsGUIState
-        where TKeysData : ISettingsKeyData
+    internal sealed partial class SettingsGUI : ISettingsGUIState
     {
-        private readonly SettingsPage<TKeysData> _page;
+        private readonly SettingsPage _page;
 
         readonly GUIMode _mode;
         readonly GetGUISeize _getGuiSize;
@@ -74,7 +73,7 @@ namespace Fury.Settings.UI
             _repaint = repaint;
             _onClose = onClose;
             _getGuiSize = getGuiSize;
-            _page = controler.NewPage<TKeysData>();
+            _page = controler.NewPage();
         }
 
         public void Update()
@@ -85,7 +84,7 @@ namespace Fury.Settings.UI
         string[] _visibleGroupsNames;
         string _selectedGroup;
         Vector2 _scrollPosition;
-        SettingsGroup<TKeysData> SelectedGroup
+        SettingsGroup SelectedGroup
         {
             get {
                 string name;
@@ -146,7 +145,7 @@ namespace Fury.Settings.UI
 
         private void OnGroupKeysGUILayout(
             ISettingsGUIState state,
-            SettingsGroup<TKeysData> group,
+            SettingsGroup group,
             float width)
         {
             var enabledRev = UnityEngine.GUI.enabled;
@@ -164,10 +163,10 @@ namespace Fury.Settings.UI
                     {
                         continue;
                     }
-                    if (key is HeaderKey<TKeysData> headerkey)
+                    if (key is HeaderKey headerkey)
                     {
                         UnityEngine.GUI.enabled = enabledRev;
-                        GUILayout.Box(headerkey.Data.Name, GUILayout.ExpandWidth(true));
+                        GUILayout.Box(headerkey.Title, GUILayout.ExpandWidth(true));
                     }
                     else
                     {

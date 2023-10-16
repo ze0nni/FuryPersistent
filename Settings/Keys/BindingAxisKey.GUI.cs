@@ -4,8 +4,7 @@ using UnityEngine;
 
 namespace Fury.Settings
 {
-    public sealed partial class BindingAxisKey<TKeyData> : SettingsKey<BindingAxis, TKeyData>
-        where TKeyData : ISettingsKeyData
+    public sealed partial class BindingAxisKey : SettingsKey<BindingAxis>
     {
         protected internal override void OnFieldGUI(ISettingsGUIState state, float containerWidth)
         {
@@ -23,7 +22,7 @@ namespace Fury.Settings
                             var handle = ReadTrigger(state, index, state.CloseWindow);
 
                             state.OpenWindow(
-                                Data.Name,
+                                Title,
                                 state.RowHeight * 15, state.RowHeight * 4,
                                 true,
                                 () =>

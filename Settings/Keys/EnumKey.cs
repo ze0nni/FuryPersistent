@@ -9,22 +9,20 @@ namespace Fury.Settings
 {
     internal class EnumKeyFactory : ISettingsKeyFactory
     {
-        public SettingsKey<TKeyData> Produce<TKeyData>(
+        public SettingsKey Produce(
             KeyContext context,
-            SettingsGroup<TKeyData> group,
+            SettingsGroup group,
             FieldInfo keyField)
-            where TKeyData : ISettingsKeyData
         {
             if (keyField.FieldType.IsEnum)
             {
-                return new EnumKey<TKeyData>(group, keyField);
+                return new EnumKey(group, keyField);
             }
             return null;
         }
     }
 
-    public sealed class EnumKey<TKeyData> : SettingsKey<string, TKeyData>
-        where TKeyData : ISettingsKeyData
+    public sealed class EnumKey : SettingsKey<string>
     {
         public int ValueIndex
         {
@@ -37,21 +35,21 @@ namespace Fury.Settings
 
         public class Option
         {
+            public readonly string Title;
             public readonly int Index;
             public readonly string Value;
-            public readonly TKeyData Data;
-            internal Option(int index, string value, TKeyData data)
+            internal Option(int index, string value)
             {
+                Title = value;
                 Index = index;
                 Value = value;
-                Data = data;
             }
         }
 
         public readonly IReadOnlyList<Option> Options;
         private readonly string[] _names;
 
-        public EnumKey(SettingsGroup<TKeyData> group, FieldInfo keyField) : base(group, keyField)
+        public EnumKey(SettingsGroup group, FieldInfo keyField) : base(group, keyField)
         {
             _names = Enum.GetNames(KeyType);
             var options = new List<Option>();
@@ -63,8 +61,7 @@ namespace Fury.Settings
                     options.Add(
                         new Option(
                             indexCounter++,
-                            field.Name,
-                            Group.Page.Controller.CreateKeyData<TKeyData>(field)));
+                            field.Name));
                 }
             }
             Options = options;
@@ -126,7 +123,7 @@ namespace Fury.Settings
                 {
                     foreach (var o in Options)
                     {
-                        if (GUILayout.Button(o.Data.Name))
+                        if (GUILayout.Button(o.Title))
                         {
                             Value = o.Value;
                             GUI.changed = true;

@@ -13,7 +13,7 @@ namespace Fury.Settings.UI
         public Func<Rect> GetSize;
     }
 
-    internal sealed partial class SettingsGUI<TKeysData>
+    internal sealed partial class SettingsGUI
     {
         GuiWindow? _window;
 

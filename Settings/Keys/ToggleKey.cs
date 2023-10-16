@@ -20,10 +20,10 @@ namespace Fury.Settings
 
     internal class ToggleFactory : ISettingsKeyFactory
     {
-        public SettingsKey<TKeyData> Produce<TKeyData>(
+        public SettingsKey Produce(
             KeyContext context,
-            SettingsGroup<TKeyData> group,
-            FieldInfo keyField) where TKeyData : ISettingsKeyData
+            SettingsGroup group,
+            FieldInfo keyField)
         {
             if (keyField.FieldType != typeof(bool))
             {
@@ -32,16 +32,15 @@ namespace Fury.Settings
             var groupAttr = keyField.GetCustomAttribute<ToggleGroupAttribute>();
             var toggleGroup = groupAttr?.GroupName == null
                 ? null
-                : context.GropuRegistry.GetOrCreate<ToggleGroup<TKeyData>>(
+                : context.GropuRegistry.GetOrCreate<ToggleGroup>(
                     groupAttr.GroupName,
-                    () => new ToggleGroup<TKeyData>(groupAttr?.GroupName));
+                    () => new ToggleGroup(groupAttr?.GroupName));
 
-            return new ToggleKey<TKeyData>(group, keyField, toggleGroup);
+            return new ToggleKey(group, keyField, toggleGroup);
         }
     }
 
-    public sealed class ToggleGroup<TKeyData>
-        where TKeyData : ISettingsKeyData
+    public sealed class ToggleGroup
     {
         public readonly string Name;
         internal ToggleGroup(string name)
@@ -49,25 +48,23 @@ namespace Fury.Settings
             Name = name;
         }
 
-        readonly List<ToggleKey<TKeyData>> _list = new List<ToggleKey<TKeyData>>();
-        public IReadOnlyCollection<ToggleKey<TKeyData>> List => _list;
+        readonly List<ToggleKey> _list = new List<ToggleKey>();
+        public IReadOnlyCollection<ToggleKey> List => _list;
 
-        internal void Add(ToggleKey<TKeyData> toggle)
+        internal void Add(ToggleKey toggle)
         {
             _list.Add(toggle);
         }
     }
 
-    public sealed class ToggleKey<TKeyData> : SettingsKey<bool, TKeyData>
-        where TKeyData : ISettingsKeyData
+    public sealed class ToggleKey : SettingsKey<bool>
     {
-        public readonly ToggleGroup<TKeyData> ToggleGroup;
+        public readonly ToggleGroup ToggleGroup;
 
         public ToggleKey(
-            SettingsGroup<TKeyData> group,
+            SettingsGroup group,
             FieldInfo keyField,
-            ToggleGroup<TKeyData> toggleGroup
-            ) : base(group, keyField)
+            ToggleGroup toggleGroup) : base(group, keyField)
         {
             ToggleGroup = toggleGroup;
             if (toggleGroup != null)

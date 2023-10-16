@@ -7,9 +7,9 @@ namespace Fury.Settings.UI
 {
     public abstract class SettingsGUIEditorWindow : EditorWindow
     {
-        SettingsGUI<DefaultKeyData> _gui;
+        SettingsGUI _gui;
 
-        private SettingsGUI<DefaultKeyData> GUI
+        private SettingsGUI GUI
         {
             get
             {
@@ -27,7 +27,7 @@ namespace Fury.Settings.UI
         public void Setup(string userId, Type settingsType)
         {
             var controller = SettingsController.Get(userId, settingsType);
-            _gui = new SettingsGUI<DefaultKeyData>(GUIMode.Editor, controller, GetGUISize, null, Repaint);
+            _gui = new SettingsGUI(GUIMode.Editor, controller, GetGUISize, null, Repaint);
         }
 
         private void GetGUISize(out Matrix4x4 matrix, out Vector2 screenSize, out Rect pageSize)

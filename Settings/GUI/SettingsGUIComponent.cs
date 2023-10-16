@@ -11,12 +11,12 @@ namespace Fury.Settings.UI
 
         public UnityAction OnClose;
 
-        SettingsGUI<DefaultKeyData> _gui;
+        SettingsGUI _gui;
 
         public void Setup(string userId, Type settingsType)
         {
             var controller = SettingsController.Get(userId, settingsType);
-            _gui = new SettingsGUI<DefaultKeyData>(GUIMode.Screen, controller, GetGuiSize, OnCloseHandler, null);
+            _gui = new SettingsGUI(GUIMode.Screen, controller, GetGuiSize, OnCloseHandler, null);
         }
 
         protected virtual void GetGuiSize(out Matrix4x4 matrix, out Vector2 screenSize, out Rect pageSize)

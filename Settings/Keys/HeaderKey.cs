@@ -4,10 +4,9 @@ using UnityEngine;
 
 namespace Fury.Settings
 {
-    public sealed class HeaderKey<TKeyData> : SettingsKey<TKeyData>
-        where TKeyData : ISettingsKeyData
+    public sealed class HeaderKey : SettingsKey
     {
-        public HeaderKey(SettingsGroup<TKeyData> group, HeaderAttribute header, ICustomAttributeProvider keyAttributesProvide) : base(group, header, keyAttributesProvide)
+        public HeaderKey(SettingsGroup group, HeaderAttribute header, ICustomAttributeProvider keyAttributesProvide) : base(group, header, keyAttributesProvide)
         {
         }
 

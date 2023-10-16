@@ -6,26 +6,24 @@ namespace Fury.Settings
 {
     internal class BindingAxisFactory : ISettingsKeyFactory
     {
-        public SettingsKey<TKeyData> Produce<TKeyData>(
+        public SettingsKey Produce(
             KeyContext context,
-            SettingsGroup<TKeyData> group,
+            SettingsGroup group,
             FieldInfo keyField)
-            where TKeyData : ISettingsKeyData
         {
             if (keyField.FieldType != typeof(BindingAxis))
             {
                 return null;
             }
-            return new BindingAxisKey<TKeyData>(context, group, keyField);
+            return new BindingAxisKey(context, group, keyField);
         }
     }
 
-    public sealed partial class BindingAxisKey<TKeyData> : SettingsKey<BindingAxis, TKeyData>
-        where TKeyData : ISettingsKeyData
+    public sealed partial class BindingAxisKey : SettingsKey<BindingAxis>
     {
         public readonly BindingFilterFlags FilterFlags;
 
-        public BindingAxisKey(KeyContext context, SettingsGroup<TKeyData> group, FieldInfo keyField) : base(group, keyField)
+        public BindingAxisKey(KeyContext context, SettingsGroup group, FieldInfo keyField) : base(group, keyField)
         {
             FilterFlags = BindingFilterAttribute.Resolve(keyField);
 

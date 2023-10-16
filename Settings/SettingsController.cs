@@ -15,7 +15,7 @@ namespace Fury.Settings
         private readonly string _hashSalt;
         private readonly Action _onChangedCallback;
         public readonly Registry Registry;
-        private readonly SettingsPage<DefaultKeyData> _primaryPage;
+        private readonly SettingsPage _primaryPage;
 
         public string UserId { get; private set; } = "";
         public string HashedUserId { get; private set; } = "";
@@ -46,7 +46,7 @@ namespace Fury.Settings
             _hash = hash;
             _onChangedCallback = OnApplySettingsAttribute.ResolveCallback(settingsType);
             Registry = new Registry();
-            _primaryPage = new SettingsPage<DefaultKeyData>(true, this);
+            _primaryPage = new SettingsPage(true, this);
             _primaryPage.Setup();
             if (userId != null)
             {
@@ -54,35 +54,28 @@ namespace Fury.Settings
             }
         }
 
-        public SettingsPage<DefaultKeyData> NewPage()
-        {
-            return NewPage<DefaultKeyData>();
-        }
-
-        public SettingsPage<TKeyData> NewPage<TKeyData>()
-            where TKeyData : ISettingsKeyData
+        public SettingsPage NewPage()
         {
             if (UserId == null)
             {
                 throw new ArgumentNullException($"Call {nameof(SettingsController)}.{nameof(SetUsetId)}() before use settings");
             }
-            var page = new SettingsPage<TKeyData>(false, this);
+            var page = new SettingsPage(false, this);
             page.Setup();
             return page;
         }
 
-        internal SettingsKey<TKeyData> CreateKey<TKeyData>(
+        internal SettingsKey CreateKey(
             KeyContext context,
-            SettingsGroup<TKeyData> group, 
+            SettingsGroup group, 
             FieldInfo keyField,
-            out SettingsKey<TKeyData> headerKey)
-            where TKeyData: ISettingsKeyData
+            out SettingsKey headerKey)
         {
-            var result = default(SettingsKey<TKeyData>);
+            var result = default(SettingsKey);
             headerKey = null;
             foreach (var factory in _factories)
             {
-                var key = factory.Produce<TKeyData>(context, group, keyField);
+                var key = factory.Produce(context, group, keyField);
                 if (key != null)
                 {
                     result = key;
@@ -93,34 +86,11 @@ namespace Fury.Settings
                 var attr = keyField.GetCustomAttribute<HeaderAttribute>();
                 if (attr != null)
                 {
-                    headerKey = new HeaderKey<TKeyData>(group, attr, keyField);
+                    headerKey = new HeaderKey(group, attr, keyField);
                 }
             }
 
             return result;
-        }
-
-        internal TKeyData CreateKeyData<TKeyData>(SettingsKey key)
-            where TKeyData : ISettingsKeyData
-        {
-            var data = Activator.CreateInstance<TKeyData>();
-            if (key.HeaderAttr != null)
-            {
-                data.Setup(key.Group, key.HeaderAttr, key.KeyAttributesProvider);
-            }
-            else
-            {
-                data.Setup(key);
-            }
-            return data;
-        }
-
-        internal TKeyData CreateKeyData<TKeyData>(FieldInfo field)
-            where TKeyData : ISettingsKeyData
-        {
-            var data = Activator.CreateInstance<TKeyData>();
-            data.Setup(field);
-            return data;
         }
 
         public void SetUsetId(string userId)

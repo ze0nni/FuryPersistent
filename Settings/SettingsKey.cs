@@ -29,11 +29,10 @@ namespace Fury.Settings
 
     public interface ISettingsKeyFactory
     {
-        SettingsKey<TKeyData> Produce<TKeyData>(
+        SettingsKey Produce(
             KeyContext context,
-            SettingsGroup<TKeyData> group,
-            FieldInfo keyField)
-            where TKeyData : ISettingsKeyData;
+            SettingsGroup group,
+            FieldInfo keyField);
     }
 
     public enum KeyType
@@ -44,6 +43,7 @@ namespace Fury.Settings
 
     public abstract partial class SettingsKey
     {
+        public readonly string Title;
         public readonly string KeyName;
         public readonly KeyType Type;
         public readonly string Id;
@@ -93,6 +93,7 @@ namespace Fury.Settings
 
         internal SettingsKey(SettingsGroup group, FieldInfo keyField)
         {
+            Title = keyField.Name;
             KeyName = keyField.Name;
             Type = Settings.KeyType.Key;
             Id = $"{group.Name}.{KeyName}";
@@ -112,6 +113,7 @@ namespace Fury.Settings
 
         internal SettingsKey(SettingsGroup group, HeaderAttribute header, ICustomAttributeProvider keyAttributesProvider)
         {
+            Title = header.header;
             KeyName = null;
             Type = Settings.KeyType.Header;
             Id = null;
@@ -159,36 +161,13 @@ namespace Fury.Settings
 
         protected abstract void ApplyValue();
         protected abstract void ResetValue();
-    }
-
-    public abstract class SettingsKey<TKeyData> : SettingsKey
-        where TKeyData : ISettingsKeyData
-    {
-        public readonly new SettingsGroup<TKeyData> Group;
-        public TKeyData Data { get; private set; }
-
-        internal SettingsKey(SettingsGroup<TKeyData> group, FieldInfo keyField) : base(group, keyField)
-        {
-            Group = group;
-        }
-
-        internal SettingsKey(SettingsGroup<TKeyData> group, HeaderAttribute header, ICustomAttributeProvider keyAttributesProvide) : base(group, header, keyAttributesProvide)
-        {
-            Group = group;
-        }
-
-        internal override void Setup()
-        {
-            base.Setup();
-           Data = Group.Page.Controller.CreateKeyData<TKeyData>(this);
-        }
 
         (Rect label, Rect field) _guiRects;
         protected (Rect label, Rect field) GuiRects => _guiRects;
 
         protected internal virtual void OnGUI(ISettingsGUIState state, float containerWidth)
         {
-            GUILayout.Label(Data.Name, GUILayout.Width(state.Width / 3));
+            GUILayout.Label(Title, GUILayout.Width(state.Width / 3));
 
             Rect labelRect = default;
             if (Event.current.type == EventType.Repaint)
@@ -212,9 +191,8 @@ namespace Fury.Settings
         }
     }
 
-    public abstract class SettingsKey<TValue, TKeyData> : SettingsKey<TKeyData>
+    public abstract class SettingsKey<TValue> : SettingsKey
         where TValue : IEquatable<TValue>
-        where TKeyData : ISettingsKeyData
     {
         private TValue _value;
 
@@ -253,7 +231,7 @@ namespace Fury.Settings
             }
         }
 
-        public SettingsKey(SettingsGroup<TKeyData> group, FieldInfo keyField): base(group, keyField)
+        public SettingsKey(SettingsGroup group, FieldInfo keyField): base(group, keyField)
         {
         }
 

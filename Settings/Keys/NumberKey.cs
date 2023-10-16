@@ -8,23 +8,21 @@ namespace Fury.Settings
 {
     internal class NumberKeyFactory : ISettingsKeyFactory
     {
-        public SettingsKey<TKeyData> Produce<TKeyData>(
+        public SettingsKey Produce(
             KeyContext context,
-            SettingsGroup<TKeyData> group,
+            SettingsGroup group,
             FieldInfo keyField)
-            where TKeyData : ISettingsKeyData
         {
             if (keyField.FieldType == typeof(int)
                 || keyField.FieldType == typeof(float))
             {
-                return new NumberKey<TKeyData>(group, keyField);
+                return new NumberKey(group, keyField);
             }
             return null;
         }
     }
 
-    public class NumberKey<TKeyData> : SettingsKey<float, TKeyData>
-        where TKeyData : ISettingsKeyData
+    public class NumberKey : SettingsKey<float>
     {
         public enum NumberType
         {
@@ -36,7 +34,7 @@ namespace Fury.Settings
         public readonly float? Min;
         public readonly float? Max;
 
-        public NumberKey(SettingsGroup<TKeyData> group, FieldInfo keyField) : base(group, keyField)
+        public NumberKey(SettingsGroup group, FieldInfo keyField) : base(group, keyField)
         {
             if (KeyType == typeof(int))
             {

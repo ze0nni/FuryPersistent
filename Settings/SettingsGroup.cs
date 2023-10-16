@@ -6,7 +6,7 @@ using static Fury.Settings.SettingsKey;
 
 namespace Fury.Settings
 {
-    public abstract class SettingsGroup
+    public sealed class SettingsGroup
     {
         public readonly string Name;
         public readonly SettingsPage Page;
@@ -67,6 +67,35 @@ namespace Fury.Settings
             _visiblePredicate = SettingsPredicateAttribute.Resolve<SettingsVisibleAttribute>(groupType);
         }
 
+        internal void Setup()
+        {
+            var context = new KeyContext(Page.Controller.Registry, Page.Registrty, Registry);
+            var keys = new List<SettingsKey>();
+            foreach (var field in GroupType.GetFields())
+            {
+                var key = Page.Controller.CreateKey(context, this, field, out var headerKey);
+                if (key == null)
+                {
+                    continue;
+                }
+                if (headerKey != null)
+                {
+                    keys.Add(headerKey);
+                }
+                keys.Add(key);
+            }
+            foreach (var key in keys)
+            {
+                key.Setup();
+                if (key.Type == KeyType.Key)
+                {
+                    _keysMap[key.KeyName] = key;
+                }
+            }
+            _keys = keys.ToArray();
+            SetKeys(keys.Cast<SettingsKey>());
+        }
+
         protected void SetKeys(IEnumerable<SettingsKey> keys)
         {
             _keys = keys.ToArray();
@@ -83,7 +112,7 @@ namespace Fury.Settings
             Page.NotifyKeyChanged(key);
         }
 
-        internal protected virtual void UpdateDisplayState()
+        internal void UpdateDisplayState()
         {
             var visible = _visiblePredicate == null ? true : _visiblePredicate(this);
             if (_visible == visible)
@@ -131,46 +160,6 @@ namespace Fury.Settings
                 key.UpdateDisplayState(this);
             }
             IsChanged = false;
-        }
-    }
-
-    public sealed class SettingsGroup<TKeyData> : SettingsGroup
-        where TKeyData : ISettingsKeyData
-    {
-        public readonly new SettingsPage<TKeyData> Page;
-        public new IReadOnlyList<SettingsKey<TKeyData>> Keys { get; private set; }
-
-        internal SettingsGroup(SettingsPage<TKeyData> page, Type groupType): base(page, groupType)
-        {
-            Page = page;
-        }
-
-        internal void Setup()
-        {
-            var context = new KeyContext(Page.Controller.Registry, Page.Registrty, Registry);
-            var keys = new List<SettingsKey<TKeyData>>();
-            foreach (var field in GroupType.GetFields())
-            {
-                var key = Page.Controller.CreateKey(context, this, field, out var headerKey);
-                if (key == null)
-                {
-                    continue;
-                }
-                if (headerKey != null)
-                {
-                    keys.Add(headerKey);
-                }
-                keys.Add(key);
-            }
-            foreach (var key in keys)
-            {
-                key.Setup();
-                if (key.Type == KeyType.Key) {
-                    _keysMap[key.KeyName] = key;
-                }
-            }
-            Keys = keys;
-            SetKeys(keys.Cast<SettingsKey>());
         }
     }
 }

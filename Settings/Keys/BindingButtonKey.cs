@@ -6,28 +6,26 @@ namespace Fury.Settings
 {
     internal class BindingButtonFactory : ISettingsKeyFactory
     {
-        public SettingsKey<TKeyData> Produce<TKeyData>(
+        public SettingsKey Produce(
             KeyContext context,
-            SettingsGroup<TKeyData> group,
+            SettingsGroup group,
             FieldInfo keyField)
-            where TKeyData : ISettingsKeyData
         {
             if (keyField.FieldType != typeof(BindingButton))
             {
                 return null;
             }
-            return new BindingButtonKey<TKeyData>(context, group, keyField);
+            return new BindingButtonKey(context, group, keyField);
         }
     }
 
-    public sealed partial class BindingButtonKey<TKeyData> : SettingsKey<BindingButton, TKeyData>
-        where TKeyData : ISettingsKeyData
+    public sealed partial class BindingButtonKey : SettingsKey<BindingButton>
     {
         public readonly BindingFilterFlags FilterFlags;
 
         internal BindingButtonKey(
             KeyContext context,
-            SettingsGroup<TKeyData> group,
+            SettingsGroup group,
             FieldInfo keyField
             ) : base(group, keyField)
         {

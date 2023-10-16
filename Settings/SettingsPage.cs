@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Fury.Settings
 {
-    public abstract class SettingsPage
+    public sealed class SettingsPage
     {
         public readonly string Name;
         public readonly bool Primary;
@@ -61,6 +61,32 @@ namespace Fury.Settings
             {
                 _primaryMap.Add(GetType(), this);
             }
+        }
+
+        internal void Setup()
+        {
+            var groups = new List<SettingsGroup>();
+            foreach (var type in Controller.SettingsType.GetNestedTypes())
+            {
+                if (type.IsClass && type.IsAbstract && type.IsSealed)
+                {
+                    groups.Add(new SettingsGroup(this, type));
+                }
+            }
+            foreach (var group in groups)
+            {
+                group.Setup();
+                foreach (var key in group.Keys)
+                {
+                    if (key.Type != KeyType.Key)
+                    {
+                        continue;
+                    }
+                    _keysMap[key.Id] = key;
+                }
+            }
+            Groups = groups;
+            SetGroups(groups.Cast<SettingsGroup>());
         }
 
         protected void SetGroups(IEnumerable<SettingsGroup> groups)
@@ -129,41 +155,6 @@ namespace Fury.Settings
                 group.Reset();
             }
             IsChanged = false;
-        }
-    }
-
-    public sealed class SettingsPage<TKeyData> : SettingsPage
-        where TKeyData : ISettingsKeyData
-    {
-        public new IReadOnlyList<SettingsGroup<TKeyData>> Groups { get; private set; }
-
-        internal SettingsPage(bool primary, SettingsController controller) : base(primary, controller) {
-        }
-
-        internal void Setup()
-        {
-            var groups = new List<SettingsGroup<TKeyData>>();
-            foreach (var type in Controller.SettingsType.GetNestedTypes())
-            {
-                if (type.IsClass && type.IsAbstract && type.IsSealed)
-                {
-                    groups.Add(new SettingsGroup<TKeyData>(this, type));
-                }
-            }
-            foreach (var group in groups)
-            {
-                group.Setup();
-                foreach (var key in group.Keys)
-                {
-                    if (key.Type != KeyType.Key)
-                    {
-                        continue;
-                    }
-                    _keysMap[key.Id] = key;
-                }
-            }
-            Groups = groups;
-            SetGroups(groups.Cast<SettingsGroup>());
         }
     }
 
