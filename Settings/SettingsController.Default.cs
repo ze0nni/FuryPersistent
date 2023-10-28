@@ -64,6 +64,7 @@ namespace Fury.Settings
             .ToArray();
 
         internal static IReadOnlyList<ISettingsKeyFactory> DefaultKeyFactories = new ISettingsKeyFactory[] {
+            new AudioLevelKeyFactory(),
             new EnumKeyFactory(),
             new NumberKeyFactory(),
             new ToggleFactory(),

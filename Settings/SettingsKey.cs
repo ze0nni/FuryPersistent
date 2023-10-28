@@ -161,6 +161,7 @@ namespace Fury.Settings
 
         protected abstract void ApplyValue();
         protected abstract void ResetValue();
+        protected virtual void OnApply() { }
 
         (Rect label, Rect field) _guiRects;
         protected (Rect label, Rect field) GuiRects => _guiRects;
@@ -263,6 +264,7 @@ namespace Fury.Settings
         protected sealed override void ApplyValue()
         {
             KeyField.SetValue(null, WriteValue(Value));
+            OnApply();
         }
 
         protected sealed override void ResetValue()

@@ -79,6 +79,7 @@ namespace Fury.Settings
                 if (key != null)
                 {
                     result = key;
+                    break;
                 }
             }
             if (result != null)
