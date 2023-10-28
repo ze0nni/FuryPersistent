@@ -10,18 +10,18 @@ using UnityEngine.Audio;
 namespace Fury.Settings
 {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
-    public sealed class AudioLevelAttribute : Attribute
+    public sealed class AudioVolumeAttribute : Attribute
     {
         public readonly string Mixer;
         public readonly string Parameter;
-        public AudioLevelAttribute (string mixer, string parameter)
+        public AudioVolumeAttribute (string mixer, string parameter)
         {
             Mixer = mixer;
             Parameter = parameter;
         }
     }
 
-    internal class AudioLevelKeyFactory : ISettingsKeyFactory
+    internal class AudioVolumeKeyFactory : ISettingsKeyFactory
     {
         public SettingsKey Produce(
             KeyContext context,
@@ -30,21 +30,21 @@ namespace Fury.Settings
         {
             if (keyField.FieldType == typeof(float))
             {
-                var attrs = keyField.GetCustomAttributes<AudioLevelAttribute>().ToArray();
+                var attrs = keyField.GetCustomAttributes<AudioVolumeAttribute>().ToArray();
                 if (attrs.Length > 0)
                 {
-                    return new AudioLevelKey(group, keyField, attrs);
+                    return new AudioVolumeKey(group, keyField, attrs);
                 }
             }
             return null;
         }
     }
 
-    internal sealed class AudioLevelKey : SettingsKey<float>
+    internal sealed class AudioVolumeKey : SettingsKey<float>
     {
         readonly List<(AudioMixer Mixer, string Parameter)> _mixers = new List<(AudioMixer, string)>();
 
-        public AudioLevelKey(SettingsGroup group, FieldInfo keyField, AudioLevelAttribute[] attrs) : base(group, keyField)
+        public AudioVolumeKey(SettingsGroup group, FieldInfo keyField, AudioVolumeAttribute[] attrs) : base(group, keyField)
         {
             foreach (var a in attrs)
             {

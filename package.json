@@ -8,7 +8,7 @@
   "displayName": "FuryPersistent",
   "description": "Collection of classes for implements game settings and game saves",
   "category": "Utilities",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "keywords": [
     "tools",
     "persistent",
