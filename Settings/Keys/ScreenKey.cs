@@ -33,7 +33,10 @@ namespace Fury.Settings
 
         protected override void OnApply()
         {
+            var r = Screen.currentResolution;
+            var mode = Value ? FullScreenMode.ExclusiveFullScreen : FullScreenMode.Windowed;
             Screen.fullScreen = Value;
+            Screen.SetResolution(r.width, r.height, mode);
         }
     }
 
@@ -52,7 +55,9 @@ namespace Fury.Settings
                 return new ScreenResolutionKey(group, keyField, Screen.resolutions.Select(r =>
                 {
                     return new OptionsKey.Option($"{r.width}x{r.height}", new Attribute[0]);
-                }).ToArray());
+                })
+                .Distinct()
+                .ToArray());
             }
             return null;
         }
