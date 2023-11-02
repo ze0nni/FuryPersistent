@@ -65,11 +65,15 @@ namespace Fury.Settings
 
         internal static IReadOnlyList<ISettingsKeyFactory> DefaultKeyFactories = new ISettingsKeyFactory[] {
             new AudioVolumeKeyFactory(),
+            new FullScreenKeyFactory(),
+            new ScreenResolutionKeyFactory(),
+
+            new BindingButtonFactory(),
+            new BindingAxisFactory(),
+
             new EnumKeyFactory(),
             new NumberKeyFactory(),
             new ToggleFactory(),
-            new BindingButtonFactory(),
-            new BindingAxisFactory(),
         };
 
         private static readonly List<ISettingsKeyFactory> _userKeyFactories = new List<ISettingsKeyFactory>();

@@ -17,14 +17,12 @@ namespace Fury.Settings
             if (keyField.FieldType.IsEnum)
             {
                 var options = new List<OptionsKey.Option>();
-                var indexCounter = 0;
                 foreach (var field in keyField.FieldType.GetFields())
                 {
                     if (field.FieldType == keyField.FieldType)
                     {
                         options.Add(
                             new OptionsKey.Option(
-                                indexCounter++,
                                 field.Name));
                     }
                 }
@@ -57,11 +55,9 @@ namespace Fury.Settings
 
         public class Option
         {
-            public readonly string Title;
             public readonly string Value;
-            internal Option(int index, string value)
+            internal Option(string value)
             {
-                Title = value;
                 Value = value;
             }
         }
@@ -151,7 +147,7 @@ namespace Fury.Settings
                 {
                     foreach (var o in Options)
                     {
-                        if (GUILayout.Button(o.Title))
+                        if (GUILayout.Button(o.Value))
                         {
                             Value = o.Value;
                             GUI.changed = true;
