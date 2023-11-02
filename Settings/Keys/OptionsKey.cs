@@ -16,77 +16,105 @@ namespace Fury.Settings
         {
             if (keyField.FieldType.IsEnum)
             {
-                return new EnumKey(group, keyField);
+                var options = new List<OptionsKey.Option>();
+                var indexCounter = 0;
+                foreach (var field in keyField.FieldType.GetFields())
+                {
+                    if (field.FieldType == keyField.FieldType)
+                    {
+                        options.Add(
+                            new OptionsKey.Option(
+                                indexCounter++,
+                                field.Name));
+                    }
+                }
+                return new OptionsKey(group, keyField, options);
             }
             return null;
         }
     }
 
-    public sealed class EnumKey : SettingsKey<string>
+    public class OptionsKey : SettingsKey<string>
     {
         public int ValueIndex
         {
-            get => Array.IndexOf(_names, Value);
+            get
+            {
+                for (var i = 0; i < Options.Count; i++)
+                {
+                    if (Options[i].Value == Value)
+                    {
+                        return i;
+                    }
+                }
+                return -1;
+            }
             set
             {
-                Value = _names[value];
+                Value = Options[value].Value;
             }
         }
 
         public class Option
         {
             public readonly string Title;
-            public readonly int Index;
             public readonly string Value;
             internal Option(int index, string value)
             {
                 Title = value;
-                Index = index;
                 Value = value;
             }
         }
 
         public readonly IReadOnlyList<Option> Options;
-        private readonly string[] _names;
 
-        public EnumKey(SettingsGroup group, FieldInfo keyField) : base(group, keyField)
+        public OptionsKey(
+            SettingsGroup group, FieldInfo keyField, IReadOnlyList<Option> options)
+            : base(group, keyField)
         {
-            _names = Enum.GetNames(KeyType);
-            var options = new List<Option>();
-            var indexCounter = 0;
-            foreach (var field in KeyType.GetFields())
-            {
-                if (field.FieldType == KeyType)
-                {
-                    options.Add(
-                        new Option(
-                            indexCounter++,
-                            field.Name));
-                }
-            }
             Options = options;
         }
 
         protected override string ReadValue(object value)
         {
             var name = value == null ? null : value.ToString();
-            var index = Array.IndexOf(_names, name);
-            if (index == -1)
+            foreach (var o in Options)
             {
-                return _names[0];
+                if (o.Value == name)
+                {
+                    return name;
+                }
             }
-            return _names[index];
+            return Options.Count == 0 ? string.Empty : (string)SettingsController.DefaultKeys.Read(this);
         }
 
         protected override bool ValidateValue(ref string value)
         {
-            return Array.IndexOf(_names, value) != -1;
+            foreach (var o in Options)
+            {
+                if (o.Value == value)
+                {
+                    return true;
+                }
+            }
+            value = Options[0].Value;
+            return true;
         }
 
         protected override object WriteValue(string value)
         {
-            var e = Enum.Parse(KeyType, value);
-            return e;
+            if (KeyField.FieldType.IsEnum)
+            {
+                if (Enum.TryParse(KeyType, value, out var e)) {
+                    return e;
+                } else
+                {
+                    return SettingsController.DefaultKeys.Read(this);
+                }
+            } else
+            {
+                return value;
+            }
         }
 
         protected override string ValueFromJson(JsonTextReader read)

@@ -57,7 +57,7 @@ namespace Fury.Settings
         }
     }
 
-    public sealed class ToggleKey : SettingsKey<bool>
+    public class ToggleKey : SettingsKey<bool>
     {
         public readonly ToggleGroup ToggleGroup;
 
