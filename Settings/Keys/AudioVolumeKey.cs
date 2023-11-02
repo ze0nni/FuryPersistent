@@ -40,11 +40,12 @@ namespace Fury.Settings
         }
     }
 
-    internal sealed class AudioVolumeKey : SettingsKey<float>
+    internal sealed class AudioVolumeKey : NumberKey
     {
         readonly List<(AudioMixer Mixer, string Parameter)> _mixers = new List<(AudioMixer, string)>();
 
-        public AudioVolumeKey(SettingsGroup group, FieldInfo keyField, AudioVolumeAttribute[] attrs) : base(group, keyField)
+        public AudioVolumeKey(SettingsGroup group, FieldInfo keyField, AudioVolumeAttribute[] attrs) 
+            : base(group, keyField, NumberType.Float, (0, 1))
         {
             foreach (var a in attrs)
             {
@@ -64,59 +65,6 @@ namespace Fury.Settings
             foreach (var m in _mixers)
             {
                 m.Mixer.SetFloat(m.Parameter, vol);
-            }
-        }
-
-        protected override float ReadValue(object value)
-        {
-            switch (value)
-            {
-                case float f:
-                    return f;
-            }
-            return 1;
-        }
-
-        protected override object WriteValue(float value)
-        {
-            return value;
-        }
-
-        protected override bool ValidateValue(ref float value)
-        {
-            value = Mathf.Clamp01(value);
-            return true;
-        }
-
-        protected override float ValueFromJson(JsonTextReader reader)
-        {
-            switch (reader.TokenType)
-            {
-                case JsonToken.Integer:
-                case JsonToken.Float:
-                case JsonToken.String:
-                    if (float.TryParse(reader.Value.ToString(), out var n))
-                        return n;
-                    break;
-                default:
-                    reader.Skip();
-                    break;
-            }
-            Debug.LogWarning($"Return default value for key {Id}");
-            return (float)SettingsController.DefaultKeys.Read(this);
-        }
-
-        protected override void ValueToJson(JsonTextWriter writer, float value)
-        {
-            writer.WriteValue(value);
-        }
-
-        protected internal override void OnFieldGUI(ISettingsGUIState state, float containerWidth)
-        {
-            var newValue = GUILayout.HorizontalSlider(Value, 0, 1);
-            if (newValue != Value)
-            {
-                Value = newValue;
             }
         }
     }

@@ -16,7 +16,12 @@ namespace Fury.Settings
             if (keyField.FieldType == typeof(int)
                 || keyField.FieldType == typeof(float))
             {
-                return new NumberKey(group, keyField);
+                var range = keyField.GetCustomAttribute<RangeAttribute>();
+                return new NumberKey(
+                    group,
+                    keyField,
+                    keyField.FieldType == typeof(int) ? NumberKey.NumberType.Int : NumberKey.NumberType.Float,
+                    range == null ? null : (range.min, range.max));
             }
             return null;
         }
@@ -31,40 +36,24 @@ namespace Fury.Settings
         }
 
         public readonly NumberType NumType;
-        public readonly float? Min;
-        public readonly float? Max;
+        public readonly (float Min, float Max)? Range;
 
-        public NumberKey(SettingsGroup group, FieldInfo keyField) : base(group, keyField)
+        public NumberKey(
+            SettingsGroup group,
+            FieldInfo keyField,
+            NumberType numberType,
+            (float, float)? range
+        ) : base(group, keyField)
         {
-            if (KeyType == typeof(int))
-            {
-                NumType = NumberType.Int;
-            }
-            else if (KeyType == typeof(float))
-            {
-                NumType = NumberType.Float;
-            }
-            else
-            {
-                throw new ArgumentException("Excepted float or int");
-            }
-            var range = keyField.GetCustomAttribute<RangeAttribute>();
-            if (range != null)
-            {
-                Min = range.min;
-                Max = range.max;
-            }
+            NumType = numberType;
+            Range = range;
         }
 
         protected override bool ValidateValue(ref float value)
         {
-            if (Min != null)
+            if (Range != null)
             {
-                value = Math.Max(Min.Value, value);
-            }
-            if (Max != null)
-            {
-                value = Math.Min(Max.Value, value);
+                value = Mathf.Clamp(value, Range.Value.Min, Range.Value.Max);
             }
             if (NumType == NumberType.Int)
             {
@@ -128,7 +117,7 @@ namespace Fury.Settings
 
         protected internal override void OnFieldGUI(ISettingsGUIState state, float containerWidth)
         {
-            if (Min == null && Max == null)
+            if (Range == null)
             {
                 var newValue = GUILayout.TextField(StringValue);
                 if (float.TryParse(newValue, out var n))
@@ -154,8 +143,7 @@ namespace Fury.Settings
             else
             {
                 GUILayout.Label(StringValue, GUILayout.Width(48));
-                var newValue = GUILayout.HorizontalSlider(Value, Min.Value, Max.Value);
-                GUILayout.Label($"{Min.Value}...{Max.Value}", GUILayout.ExpandWidth(false));
+                var newValue = GUILayout.HorizontalSlider(Value, Range.Value.Min, Range.Value.Max);
                 if (newValue != Value)
                 {
                     Value = newValue;
