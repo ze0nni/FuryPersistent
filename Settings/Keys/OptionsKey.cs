@@ -2,6 +2,7 @@ using Fury.Settings.UI;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -21,9 +22,9 @@ namespace Fury.Settings
                 {
                     if (field.FieldType == keyField.FieldType)
                     {
-                        options.Add(
-                            new OptionsKey.Option(
-                                field.Name));
+                        options.Add(new OptionsKey.Option(
+                            field.Name,
+                            field.GetCustomAttributes().ToArray()));
                     }
                 }
                 return new OptionsKey(group, keyField, options);
@@ -56,9 +57,12 @@ namespace Fury.Settings
         public class Option
         {
             public readonly string Value;
-            internal Option(string value)
+            public readonly IReadOnlyList<Attribute> Attributes;
+
+            internal Option(string value, IReadOnlyList<Attribute> attributes)
             {
                 Value = value;
+                Attributes = attributes;
             }
         }
 

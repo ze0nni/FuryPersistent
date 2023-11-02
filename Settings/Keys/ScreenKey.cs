@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Fury.Settings
 {
     [AttributeUsage(AttributeTargets.Field, AllowMultiple = false)]
-    public sealed class ScreenFullscreenAttribute : Attribute
+    public sealed class ScreenFullScreenAttribute : Attribute
     {
 
     }
@@ -17,7 +17,7 @@ namespace Fury.Settings
         public SettingsKey Produce(KeyContext context, SettingsGroup group, FieldInfo keyField)
         {
             if (keyField.FieldType == typeof(bool) 
-                && keyField.GetCustomAttribute<ScreenFullscreenAttribute>() != null)
+                && keyField.GetCustomAttribute<ScreenFullScreenAttribute>() != null)
             {
                 return new FullScreenKey(group, keyField);
             }
@@ -51,7 +51,7 @@ namespace Fury.Settings
             {
                 return new ScreenResolutionKey(group, keyField, Screen.resolutions.Select(r =>
                 {
-                    return new OptionsKey.Option($"{r.width}x{r.height}");
+                    return new OptionsKey.Option($"{r.width}x{r.height}", new Attribute[0]);
                 }).ToArray());
             }
             return null;
