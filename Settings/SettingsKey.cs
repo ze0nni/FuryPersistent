@@ -16,6 +16,7 @@ namespace Fury.Settings
         public readonly IRegistry PrimaryRegistry;
         public readonly IRegistry PageRegistry;
         public readonly IRegistry GropuRegistry;
+        public FieldInfo CurrentField { get; internal set; }
         internal KeyContext(
             IRegistry primary,
             IRegistry page,
@@ -32,7 +33,11 @@ namespace Fury.Settings
         SettingsKey Produce(
             KeyContext context,
             SettingsGroup group,
-            FieldInfo keyField);
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter);
     }
 
     public enum KeyType
@@ -49,10 +54,12 @@ namespace Fury.Settings
         public readonly string Id;
         public readonly SettingsGroup Group;
         public readonly Type KeyType;
-        public readonly FieldInfo KeyField;
-        public readonly ICustomAttributeProvider KeyAttributesProvider;
+        public readonly IReadOnlyList<Attribute> KeyAttributesProvider;
         public readonly HeaderAttribute HeaderAttr;
         public readonly IReadOnlyList<Attribute> HeaderAttributes;
+
+        internal readonly Func<object> _getter;
+        internal readonly Action<object> _setter;
 
         private bool _enabled;
         public bool Enabled => _enabled;
@@ -91,27 +98,36 @@ namespace Fury.Settings
         internal readonly DisplayPredecateDelegate _enabledPredicate;
         internal readonly DisplayPredecateDelegate _visiblePredicate;
 
-        internal SettingsKey(SettingsGroup group, FieldInfo keyField)
+        internal SettingsKey(
+            SettingsGroup group,
+            string name,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter)
         {
-            Title = keyField.Name;
-            KeyName = keyField.Name;
+            Title = name;
+            KeyName = name;
             Type = Settings.KeyType.Key;
             Id = $"{group.Name}.{KeyName}";
             Group = group;
-            KeyType = keyField.FieldType;
-            KeyField = keyField;
-            KeyAttributesProvider = keyField;
+            KeyType = keyType;
+            KeyAttributesProvider = attributes;
             _enabledPredicate = SettingsPredicateAttribute
-                .Resolve<SettingsEnabledAttribute>(keyField);
+                .Resolve<SettingsEnabledAttribute>(attributes);
             _visiblePredicate = SettingsPredicateAttribute
-                .Resolve<SettingsVisibleAttribute>(keyField);
+                .Resolve<SettingsVisibleAttribute>(attributes);
+
+            _getter = getter;
+            _setter = setter;
+
             if (Type == Settings.KeyType.Key)
             {
                 DefaultKeys.Store(this);
             }
         }
 
-        internal SettingsKey(SettingsGroup group, HeaderAttribute header, ICustomAttributeProvider keyAttributesProvider)
+        internal SettingsKey(SettingsGroup group, HeaderAttribute header, IReadOnlyList<Attribute> attribytes)
         {
             Title = header.header;
             KeyName = null;
@@ -119,10 +135,10 @@ namespace Fury.Settings
             Id = null;
             Group = group;
             KeyType = typeof(void);
-            KeyAttributesProvider = keyAttributesProvider;
+            KeyAttributesProvider = attribytes;
             HeaderAttr = header;
             _visiblePredicate = SettingsPredicateAttribute
-                .Resolve<SettingsVisibleAttribute>(keyAttributesProvider);
+                .Resolve<SettingsVisibleAttribute>(attribytes);
         }
 
         protected virtual void NotifyKeyChanged()
@@ -232,7 +248,14 @@ namespace Fury.Settings
             }
         }
 
-        public SettingsKey(SettingsGroup group, FieldInfo keyField): base(group, keyField)
+        public SettingsKey(
+            SettingsGroup group,
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter) 
+            : base(group, keyName, keyType, attributes, getter, setter)
         {
         }
 
@@ -263,13 +286,13 @@ namespace Fury.Settings
 
         protected sealed override void ApplyValue()
         {
-            KeyField.SetValue(null, WriteValue(Value));
+            _setter.Invoke(WriteValue(Value));
             OnApply();
         }
 
         protected sealed override void ResetValue()
         {
-            var value = ReadValue(KeyField.GetValue(null));
+            var value = ReadValue(_getter.Invoke());
             ValidateValue(ref value);
             _value = ReadValue(value);
             UpdateStringValue();

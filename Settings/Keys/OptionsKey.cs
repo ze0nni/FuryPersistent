@@ -13,21 +13,25 @@ namespace Fury.Settings
         public SettingsKey Produce(
             KeyContext context,
             SettingsGroup group,
-            FieldInfo keyField)
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter)
         {
-            if (keyField.FieldType.IsEnum)
+            if (keyType.IsEnum)
             {
                 var options = new List<OptionsKey.Option>();
-                foreach (var field in keyField.FieldType.GetFields())
+                foreach (var field in keyType.GetFields())
                 {
-                    if (field.FieldType == keyField.FieldType)
+                    if (field.FieldType == keyType)
                     {
                         options.Add(new OptionsKey.Option(
                             field.Name,
                             field.GetCustomAttributes().ToArray()));
                     }
                 }
-                return new OptionsKey(group, keyField, options);
+                return new OptionsKey(group, keyName, keyType, attributes, getter, setter, options);
             }
             return null;
         }
@@ -69,8 +73,14 @@ namespace Fury.Settings
         public readonly IReadOnlyList<Option> Options;
 
         public OptionsKey(
-            SettingsGroup group, FieldInfo keyField, IReadOnlyList<Option> options)
-            : base(group, keyField)
+            SettingsGroup group, 
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter,
+            IReadOnlyList<Option> options)
+            : base(group, keyName, keyType, attributes, getter, setter)
         {
             Options = options;
         }
@@ -103,7 +113,7 @@ namespace Fury.Settings
 
         protected override object WriteValue(string value)
         {
-            if (KeyField.FieldType.IsEnum)
+            if (KeyType.IsEnum)
             {
                 if (Enum.TryParse(KeyType, value, out var e)) {
                     return e;

@@ -24,14 +24,18 @@ namespace Fury.Settings
         public SettingsKey Produce(
             KeyContext context,
             SettingsGroup group,
-            FieldInfo keyField)
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter)
         {
-            if (keyField.FieldType == typeof(float))
+            if (keyType == typeof(float))
             {
-                var attrs = keyField.GetCustomAttributes<AudioVolumeAttribute>().ToArray();
+                var attrs = attributes.Where(a => a is AudioVolumeAttribute).Cast<AudioVolumeAttribute>().ToArray();
                 if (attrs.Length > 0)
                 {
-                    return new AudioVolumeKey(group, keyField, attrs);
+                    return new AudioVolumeKey(group, keyName, attributes, getter, setter, attrs);
                 }
             }
             return null;
@@ -42,8 +46,14 @@ namespace Fury.Settings
     {
         readonly List<(AudioMixer Mixer, string Parameter)> _mixers = new List<(AudioMixer, string)>();
 
-        public AudioVolumeKey(SettingsGroup group, FieldInfo keyField, AudioVolumeAttribute[] attrs) 
-            : base(group, keyField, NumberType.Float, (0, 1))
+        public AudioVolumeKey(
+            SettingsGroup group,
+            string keyName,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter,
+            AudioVolumeAttribute[] attrs) 
+            : base(group, keyName, typeof(float), attributes, getter, setter, NumberType.Float, (0, 1))
         {
             foreach (var a in attrs)
             {

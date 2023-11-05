@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Fury.Settings
 {
@@ -9,13 +11,22 @@ namespace Fury.Settings
         public SettingsKey Produce(
             KeyContext context,
             SettingsGroup group,
-            FieldInfo keyField)
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter)
         {
-            if (keyField.FieldType != typeof(BindingButton))
+            if (keyType != typeof(BindingButton))
             {
                 return null;
             }
-            return new BindingButtonKey(context, group, keyField);
+            if (context.CurrentField == null || !context.CurrentField.IsStatic)
+            {
+                Debug.Log($"{nameof(BindingButtonKey)} request static FieldInfo");
+                return null;
+            }
+            return new BindingButtonKey(context, group, keyName, attributes, getter, setter);
         }
     }
 
@@ -26,17 +37,20 @@ namespace Fury.Settings
         internal BindingButtonKey(
             KeyContext context,
             SettingsGroup group,
-            FieldInfo keyField
-            ) : base(group, keyField)
+            string keyName,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter
+            ) : base(group, keyName, typeof(BindingButton), attributes, getter, setter)
         {
-            FilterFlags = BindingFilterAttribute.Resolve(keyField);
+            FilterFlags = BindingFilterAttribute.Resolve(attributes, context.CurrentField);
 
             if (group.Page.PrimaryGameObject != null)
             {
                 var mediator = context.PrimaryRegistry.GetOrCreate(
                     null,
                     () => group.Page.PrimaryGameObject.AddComponent<BindingMediator>());
-                mediator.ListenKey(keyField);
+                mediator.ListenKey(context.CurrentField);
             }
         }
 

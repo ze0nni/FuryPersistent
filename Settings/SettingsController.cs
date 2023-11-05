@@ -67,15 +67,18 @@ namespace Fury.Settings
 
         internal SettingsKey CreateKey(
             KeyContext context,
-            SettingsGroup group, 
-            FieldInfo keyField,
+            SettingsGroup group,
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter, Action<object> setter,
             out SettingsKey headerKey)
         {
             var result = default(SettingsKey);
             headerKey = null;
             foreach (var factory in _factories)
             {
-                var key = factory.Produce(context, group, keyField);
+                var key = factory.Produce(context, group, keyName, keyType, attributes, getter, setter);
                 if (key != null)
                 {
                     result = key;
@@ -84,14 +87,30 @@ namespace Fury.Settings
             }
             if (result != null)
             {
-                var attr = keyField.GetCustomAttribute<HeaderAttribute>();
+                var attr = attributes.Where(x => x is HeaderAttribute).Cast<HeaderAttribute>().FirstOrDefault();
                 if (attr != null)
                 {
-                    headerKey = new HeaderKey(group, attr, keyField);
+                    headerKey = new HeaderKey(group, attr, attributes);
                 }
             }
 
             return result;
+        }
+
+        internal SettingsKey CreateKey(
+            KeyContext context,
+            SettingsGroup group,
+            FieldInfo field,
+            out SettingsKey headerKey)
+        {
+            return CreateKey(
+                context,
+                group,
+                field.Name,
+                field.FieldType,
+                field.GetCustomAttributes().ToArray(),
+                () => field.GetValue(null), v => field.SetValue(null, v),
+                out headerKey);
         }
 
         public void SetUsetId(string userId)

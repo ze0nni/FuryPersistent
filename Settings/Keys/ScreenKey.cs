@@ -14,12 +14,19 @@ namespace Fury.Settings
 
     internal class FullScreenKeyFactory : ISettingsKeyFactory
     {
-        public SettingsKey Produce(KeyContext context, SettingsGroup group, FieldInfo keyField)
+        public SettingsKey Produce(
+            KeyContext context,
+            SettingsGroup group,
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter)
         {
-            if (keyField.FieldType == typeof(bool) 
-                && keyField.GetCustomAttribute<ScreenFullScreenAttribute>() != null)
+            if (keyType == typeof(bool) 
+                && attributes.Any(a => a is ScreenFullScreenAttribute))
             {
-                return new FullScreenKey(group, keyField);
+                return new FullScreenKey(group, keyName, attributes, getter, setter);
             }
             return null;
         }
@@ -27,7 +34,12 @@ namespace Fury.Settings
 
     public class FullScreenKey : ToggleKey
     {
-        public FullScreenKey(SettingsGroup group, FieldInfo keyField) : base(group, keyField, null)
+        public FullScreenKey(
+            SettingsGroup group,
+            string keyName,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter) : base(group, null, keyName, attributes, getter, setter)
         {
         }
 
@@ -48,11 +60,18 @@ namespace Fury.Settings
 
     internal class ScreenResolutionKeyFactory : ISettingsKeyFactory
     {
-        public SettingsKey Produce(KeyContext context, SettingsGroup group, FieldInfo keyField)
+        public SettingsKey Produce(
+            KeyContext context,
+            SettingsGroup group,
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter)
         {
-            if (keyField.FieldType == typeof(string) && keyField.GetCustomAttribute<ScreenResolutionAttribute>() != null)
+            if (keyType == typeof(string) && attributes.Any(a => a is ScreenResolutionAttribute))
             {
-                return new ScreenResolutionKey(group, keyField, Screen.resolutions.Select(r =>
+                return new ScreenResolutionKey(group, keyName, attributes, getter, setter, Screen.resolutions.Select(r =>
                 {
                     return new OptionsKey.Option($"{r.width}x{r.height}", new Attribute[0]);
                 })
@@ -65,7 +84,13 @@ namespace Fury.Settings
 
     public class ScreenResolutionKey : OptionsKey
     {
-        public ScreenResolutionKey(SettingsGroup group, FieldInfo keyField, IReadOnlyList<Option> options) : base(group, keyField, options)
+        public ScreenResolutionKey(
+            SettingsGroup group, 
+            string keyName,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter,
+            IReadOnlyList<Option> options) : base(group, keyName, typeof(string), attributes, getter, setter, options)
         {
         }
 

@@ -87,7 +87,7 @@ namespace Fury.Settings
             internal static void Store(SettingsKey key)
             {
                 var dKey = (key.Group.Page.Controller.SettingsType, key.Id);
-                var value = key.KeyField.GetValue(null);
+                var value = key._getter.Invoke();
                 if (value is ICloneable clonable)
                     _defaults.TryAdd(dKey, clonable.Clone());
                 else

@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Fury.Settings
@@ -9,13 +10,17 @@ namespace Fury.Settings
         public SettingsKey Produce(
             KeyContext context,
             SettingsGroup group,
-            FieldInfo keyField)
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter)
         {
-            if (keyField.FieldType != typeof(BindingAxis))
+            if (keyType != typeof(BindingAxis))
             {
                 return null;
             }
-            return new BindingAxisKey(context, group, keyField);
+            return new BindingAxisKey(context, group, keyName, attributes, getter, setter);
         }
     }
 
@@ -23,16 +28,23 @@ namespace Fury.Settings
     {
         public readonly BindingFilterFlags FilterFlags;
 
-        public BindingAxisKey(KeyContext context, SettingsGroup group, FieldInfo keyField) : base(group, keyField)
+        public BindingAxisKey(
+            KeyContext context,
+            SettingsGroup group,
+            string keyName,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter
+            ) : base(group, keyName, typeof(BindingAxis), attributes, getter, setter)
         {
-            FilterFlags = BindingFilterAttribute.Resolve(keyField);
+            FilterFlags = BindingFilterAttribute.Resolve(attributes, context.CurrentField);
 
             if (group.Page.PrimaryGameObject != null)
             {
                 var mediator = context.PrimaryRegistry.GetOrCreate(
                     null,
                     () => group.Page.PrimaryGameObject.AddComponent<BindingMediator>());
-                mediator.ListenAxis(keyField);
+                mediator.ListenAxis(context.CurrentField);
             }
         }
 

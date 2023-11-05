@@ -64,7 +64,8 @@ namespace Fury.Settings
             Name = groupType.Name;
             Page = page;
             GroupType = groupType;
-            _visiblePredicate = SettingsPredicateAttribute.Resolve<SettingsVisibleAttribute>(groupType);
+            _visiblePredicate = SettingsPredicateAttribute.Resolve<SettingsVisibleAttribute>(
+                groupType.GetCustomAttributes(true).Cast<Attribute>().ToArray());
         }
 
         internal void Setup()
@@ -73,23 +74,36 @@ namespace Fury.Settings
             var keys = new List<SettingsKey>();
             foreach (var field in GroupType.GetFields())
             {
-                var key = Page.Controller.CreateKey(context, this, field, out var headerKey);
-                if (key == null)
+                if (typeof(ISettingsKeysSource).IsAssignableFrom(field.FieldType))
                 {
-                    continue;
+                    var source = (ISettingsKeysSource)Activator.CreateInstance(field.FieldType);
+                    using (var builder = new SettingsKeyBuilder(this, context, keys))
+                    {
+                        source.Generate(field, builder);
+                    }
                 }
-                if (headerKey != null)
+                else
                 {
-                    keys.Add(headerKey);
+                    context.CurrentField = field;
+                    var key = Page.Controller.CreateKey(context, this, field, out var headerKey);
+                    context.CurrentField = null;
+                    if (key == null)
+                    {
+                        continue;
+                    }
+                    if (headerKey != null)
+                    {
+                        keys.Add(headerKey);
+                    }
+                    keys.Add(key);
                 }
-                keys.Add(key);
             }
             foreach (var key in keys)
             {
                 key.Setup();
                 if (key.Type == KeyType.Key)
                 {
-                    _keysMap[key.KeyName] = key;
+                    _keysMap.Add(key.KeyName, key);
                 }
             }
             _keys = keys.ToArray();

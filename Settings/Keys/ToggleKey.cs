@@ -2,6 +2,7 @@ using Fury.Settings.UI;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -23,20 +24,24 @@ namespace Fury.Settings
         public SettingsKey Produce(
             KeyContext context,
             SettingsGroup group,
-            FieldInfo keyField)
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter)
         {
-            if (keyField.FieldType != typeof(bool))
+            if (keyType != typeof(bool))
             {
                 return null;
             }
-            var groupAttr = keyField.GetCustomAttribute<ToggleGroupAttribute>();
+            var groupAttr = attributes.Where(a => a is ToggleGroupAttribute).Cast<ToggleGroupAttribute>().FirstOrDefault();
             var toggleGroup = groupAttr?.GroupName == null
                 ? null
                 : context.GropuRegistry.GetOrCreate<ToggleGroup>(
                     groupAttr.GroupName,
                     () => new ToggleGroup(groupAttr?.GroupName));
 
-            return new ToggleKey(group, keyField, toggleGroup);
+            return new ToggleKey(group, toggleGroup, keyName, attributes, getter, setter);
         }
     }
 
@@ -63,8 +68,11 @@ namespace Fury.Settings
 
         public ToggleKey(
             SettingsGroup group,
-            FieldInfo keyField,
-            ToggleGroup toggleGroup) : base(group, keyField)
+            ToggleGroup toggleGroup,
+            string keyName,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter) : base(group, keyName, typeof(bool), attributes, getter, setter)
         {
             ToggleGroup = toggleGroup;
             if (toggleGroup != null)

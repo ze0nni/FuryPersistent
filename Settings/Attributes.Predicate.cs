@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -36,10 +37,10 @@ namespace Fury.Settings
         }
 
         public static SettingsKey.DisplayPredecateDelegate Resolve<T>(
-            ICustomAttributeProvider provider)
+            IReadOnlyList<Attribute> attributes)
             where T : SettingsPredicateAttribute
         {
-            var attr = provider.GetCustomAttributes(typeof(T), false).Cast<T>().FirstOrDefault();
+            var attr = attributes.Where(x => typeof(T).IsAssignableFrom(x.GetType())).Cast<T>().FirstOrDefault();
             if (attr == null)
             {
                 return null;

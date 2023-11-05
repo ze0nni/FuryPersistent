@@ -1,6 +1,8 @@
 using Fury.Settings.UI;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -11,16 +13,24 @@ namespace Fury.Settings
         public SettingsKey Produce(
             KeyContext context,
             SettingsGroup group,
-            FieldInfo keyField)
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter)
         {
-            if (keyField.FieldType == typeof(int)
-                || keyField.FieldType == typeof(float))
+            if (keyType == typeof(int)
+                || keyType == typeof(float))
             {
-                var range = keyField.GetCustomAttribute<RangeAttribute>();
+                var range = attributes.Where(a => a is RangeAttribute).Cast<RangeAttribute>().FirstOrDefault();
                 return new NumberKey(
                     group,
-                    keyField,
-                    keyField.FieldType == typeof(int) ? NumberKey.NumberType.Int : NumberKey.NumberType.Float,
+                    keyName,
+                    keyType,
+                    attributes,
+                    getter,
+                    setter,
+                    keyType == typeof(int) ? NumberKey.NumberType.Int : NumberKey.NumberType.Float,
                     range == null ? null : (range.min, range.max));
             }
             return null;
@@ -40,10 +50,14 @@ namespace Fury.Settings
 
         public NumberKey(
             SettingsGroup group,
-            FieldInfo keyField,
+            string keyName,
+            Type keyType,
+            IReadOnlyList<Attribute> attributes,
+            Func<object> getter,
+            Action<object> setter,
             NumberType numberType,
             (float, float)? range
-        ) : base(group, keyField)
+        ) : base(group, keyName, keyType, attributes, getter, setter)
         {
             NumType = numberType;
             Range = range;

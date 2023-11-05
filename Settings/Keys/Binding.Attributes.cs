@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Fury.Settings
@@ -19,11 +21,11 @@ namespace Fury.Settings
         public BindingFilterFlags Flags;
         public BindingFilterAttribute(BindingFilterFlags flags) => Flags = flags;
 
-        public static BindingFilterFlags Resolve(FieldInfo field)
+        public static BindingFilterFlags Resolve(IReadOnlyList<Attribute> attributes, FieldInfo fieldInfo)
         {
             var resultFlags = BindingFilterFlags.All;
 
-            var fieldAttr = field.GetCustomAttribute<BindingFilterAttribute>();
+            var fieldAttr = attributes.Where(a => a is BindingFilterAttribute).Cast<BindingFilterAttribute>().FirstOrDefault();
             if (fieldAttr != null)
             {
                 return fieldAttr.Flags;
@@ -45,7 +47,10 @@ namespace Fury.Settings
                     FindInParent(parent.DeclaringType, ref flags);
                 }
             }
-            FindInParent(field.DeclaringType, ref resultFlags);
+            if (fieldInfo != null)
+            {
+                FindInParent(fieldInfo.DeclaringType, ref resultFlags);
+            }
 
             return resultFlags;
         }
