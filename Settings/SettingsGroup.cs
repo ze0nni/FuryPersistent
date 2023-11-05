@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using static Fury.Settings.SettingsKey;
 
@@ -72,7 +73,7 @@ namespace Fury.Settings
         {
             var context = new KeyContext(Page.Controller.Registry, Page.Registrty, Registry);
             var keys = new List<SettingsKey>();
-            foreach (var field in GroupType.GetFields())
+            foreach (var field in GroupType.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 if (typeof(ISettingsKeysSource).IsAssignableFrom(field.FieldType))
                 {
