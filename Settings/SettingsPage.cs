@@ -29,7 +29,20 @@ namespace Fury.Settings
             return (T)GetKey(id);
         }
 
-        public bool IsChanged { get; private set; }
+        public event Action OnChanged;
+        private bool _isChanged;
+        public bool IsChanged {
+            get => _isChanged;
+            set
+            {
+                if (_isChanged == value)
+                {
+                    return;
+                }
+                _isChanged = value;
+                OnChanged?.Invoke();
+            }
+        }
         public event Action<SettingsKey> OnKeyChanged;
 
         public IReadOnlyDictionary<string, SettingsKey> KeysToLoad
