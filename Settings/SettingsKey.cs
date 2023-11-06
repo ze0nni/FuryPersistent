@@ -92,6 +92,7 @@ namespace Fury.Settings
 
         public bool IsChanged { get; private set; }
         public event Action<SettingsKey> OnKeyChanged;
+        protected void InvokeOnKeyChanged() => OnKeyChanged?.Invoke(this);
 
         public delegate bool DisplayPredecateDelegate(SettingsGroup group);
 
@@ -295,6 +296,7 @@ namespace Fury.Settings
             var value = ReadValue(_getter.Invoke());
             ValidateValue(ref value);
             _value = ReadValue(value);
+            InvokeOnKeyChanged();
             UpdateStringValue();
         }
 
