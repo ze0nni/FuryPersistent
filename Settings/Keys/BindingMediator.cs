@@ -31,6 +31,8 @@ namespace Fury.Settings
 
         readonly Dictionary<string, bool> _excludeAxis = new Dictionary<string, bool>();
 
+        public event Action OnUpdate;
+
         internal void ListenKey(FieldInfo fieldInfo)
         {
             try
@@ -161,6 +163,8 @@ namespace Fury.Settings
                     state.Setter(b);
                 }
             }
+
+            OnUpdate?.Invoke();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

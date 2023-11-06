@@ -90,7 +90,12 @@ namespace Fury.Settings
             }
         }
 
-        public ReadBindingAxisHandle ReadTrigger(ISettingsGUIState state, int triggerIndex, Action close)
+        public ReadBindingAxisHandle ReadTrigger(int triggerIndex, Action close)
+        {
+            return ReadTrigger(null, triggerIndex, close);
+        }
+
+        internal ReadBindingAxisHandle ReadTrigger(ISettingsGUIState state, int triggerIndex, Action close)
         {
             var mediator = Group.Page.Controller.Registry.Get<BindingMediator>();
             return new ReadBindingAxisHandle(mediator, state, FilterFlags, close, (AxisTrigger t) =>
@@ -128,13 +133,19 @@ namespace Fury.Settings
 
         void Listen()
         {
-            _state.OnUpdate += OnUpdate;
-            _state.OnGUIEvent += OnGUIEvent;
+            if (_state != null)
+            {
+                _state.OnUpdate += OnUpdate;
+                _state.OnGUIEvent += OnGUIEvent;
+            } else
+            {
+                _mediator.OnUpdate += OnUpdate;
+            }
         }
 
         void OnUpdate()
         {
-            if (_state.Mode == GUIMode.Screen)
+            if (_state == null || _state.Mode == GUIMode.Screen)
             {
                 if (_mediator.ReadAnyAxis(_filter, out var axisTrigger))
                     Perform(axisTrigger);
@@ -145,7 +156,7 @@ namespace Fury.Settings
 
         void OnGUIEvent(Event e)
         {
-            if (_state.Mode == GUIMode.Editor)
+            if (_state != null && _state.Mode == GUIMode.Editor)
             {
                 if (e.type == EventType.KeyDown && e.keyCode != KeyCode.None)
                 {
@@ -183,8 +194,14 @@ namespace Fury.Settings
             {
                 return;
             }
-            _state.OnUpdate -= OnUpdate;
-            _state.OnGUIEvent -= OnGUIEvent;
+            if (_state != null)
+            {
+                _state.OnUpdate -= OnUpdate;
+                _state.OnGUIEvent -= OnGUIEvent;
+            } else
+            {
+                _mediator.OnUpdate -= OnUpdate;
+            }
             var c = _close;
             _close = null;
             c.Invoke();
