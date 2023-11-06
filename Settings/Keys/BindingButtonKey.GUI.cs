@@ -138,7 +138,7 @@ namespace Fury.Settings
                 _state.OnGUIEvent += OnGUIEvent;
             } else
             {
-                _mediator.OnUpdate += OnUpdate;
+                _mediator.OnHandleUpdate += OnUpdate;
             }
         }
 
@@ -216,7 +216,7 @@ namespace Fury.Settings
                 _state.OnGUIEvent -= OnGUIEvent;
             } else
             {
-                _mediator.OnUpdate -= OnUpdate;
+                _mediator.OnHandleUpdate -= OnUpdate;
             }
             var c = _close;
             _close = null;

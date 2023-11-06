@@ -31,7 +31,7 @@ namespace Fury.Settings
 
         readonly Dictionary<string, bool> _excludeAxis = new Dictionary<string, bool>();
 
-        public event Action OnUpdate;
+        internal event Action OnHandleUpdate;
 
         internal void ListenKey(FieldInfo fieldInfo)
         {
@@ -109,6 +109,12 @@ namespace Fury.Settings
                 ExcludeJoystickAxis();
             }
 
+            var capture = OnHandleUpdate != null;
+            if (OnHandleUpdate != null)
+            {
+                OnHandleUpdate.Invoke();
+            }
+
             for (var i = 0; i < _triggersCount; i++)
             {
                 ref var state = ref _triggers[i];
@@ -129,14 +135,14 @@ namespace Fury.Settings
                 var justReleased = lastPressed && !pressed;
 
                 changed = 
-                    b._captured
+                    b._captured != capture
                     || pressed != lastPressed
                     || justPressed != b._justPressed
                     || justReleased != b._justReleased;
 
                 if (changed)
                 {
-                    b._captured = false;
+                    b._captured = capture;
                     b._presset = pressed;
                     b._justPressed = justPressed;
                     b._justReleased = justReleased;
@@ -150,9 +156,12 @@ namespace Fury.Settings
                 var b = state.Getter();
 
                 var v = 0f;
-                for (var ti = 0; ti < b._triggers.Length; ti++)
+                if (!capture)
                 {
-                    v += GetAxisValue(in b._triggers[ti]);
+                    for (var ti = 0; ti < b._triggers.Length; ti++)
+                    {
+                        v += GetAxisValue(in b._triggers[ti]);
+                    }
                 }
                 var rawV = v;
                 v = v < -1 ? -1 : v > 1 ? 1 : v;
@@ -163,8 +172,6 @@ namespace Fury.Settings
                     state.Setter(b);
                 }
             }
-
-            OnUpdate?.Invoke();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
