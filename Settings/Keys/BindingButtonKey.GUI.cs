@@ -29,7 +29,7 @@ namespace Fury.Settings
                         var handle = ReadTrigger(state, index, state.CloseWindow);
 
                         state.OpenWindow(
-                            Title,
+                            KeyName,
                             state.RowHeight * 15, state.RowHeight * 3,
                             true,
                             () =>

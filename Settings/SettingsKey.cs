@@ -48,7 +48,6 @@ namespace Fury.Settings
 
     public abstract partial class SettingsKey
     {
-        public readonly string Title;
         public readonly string KeyName;
         public readonly KeyType Type;
         public readonly string Id;
@@ -107,7 +106,6 @@ namespace Fury.Settings
             Func<object> getter,
             Action<object> setter)
         {
-            Title = name;
             KeyName = name;
             Type = Settings.KeyType.Key;
             Id = $"{group.Name}.{KeyName}";
@@ -130,8 +128,7 @@ namespace Fury.Settings
 
         internal SettingsKey(SettingsGroup group, HeaderAttribute header, IReadOnlyList<Attribute> attribytes)
         {
-            Title = header.header;
-            KeyName = null;
+            KeyName = header.header;
             Type = Settings.KeyType.Header;
             Id = null;
             Group = group;
@@ -185,7 +182,7 @@ namespace Fury.Settings
 
         protected internal virtual void OnGUI(ISettingsGUIState state, float containerWidth)
         {
-            GUILayout.Label(Title, GUILayout.Width(state.Width / 3));
+            GUILayout.Label(KeyName, GUILayout.Width(state.Width / 3));
 
             Rect labelRect = default;
             if (Event.current.type == EventType.Repaint)

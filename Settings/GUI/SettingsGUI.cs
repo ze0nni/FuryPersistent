@@ -166,7 +166,7 @@ namespace Fury.Settings.UI
                     if (key is HeaderKey headerkey)
                     {
                         UnityEngine.GUI.enabled = enabledRev;
-                        GUILayout.Box(headerkey.Title, GUILayout.ExpandWidth(true));
+                        GUILayout.Box(headerkey.KeyName, GUILayout.ExpandWidth(true));
                     }
                     else
                     {
