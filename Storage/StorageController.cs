@@ -28,7 +28,7 @@ namespace Fury.Storage
             StorageType = storageType;
             _containers = containers.ToArray();
 
-            var go = new GameObject($"[{nameof(StorageController)}:{storageType.Name}]");
+            var go = new GameObject($"[{nameof(StorageController)}:{storageType.FullName}]");
             GameObject.DontDestroyOnLoad(go);
             _mediator = go.AddComponent<StorageMediator>();
             _mediator.Register(this);

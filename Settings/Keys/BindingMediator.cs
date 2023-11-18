@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Fury.Settings
 {
-    [DefaultExecutionOrder(-100)]
+    [DefaultExecutionOrder(-900)]
     public sealed class BindingMediator : MonoBehaviour
     {
         struct ButtonState
